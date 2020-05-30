@@ -1,12 +1,12 @@
 class UsersController < ApplicationController
   before_action :require_user_logged_in, only: [:index, :show]
+  before_action :set_user, only: [:show, :edit, :update, :destroy]
 
   def index
     @users = User.order(id: :desc).page(params[:page]).per(25)
   end
 
   def show
-    @user = User.find(params[:id])
   end
 
   def new
@@ -17,6 +17,7 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
     
     if @user.save
+      session[:user_id] = @user.id
       flash[:success] = 'ユーザを登録しました'
       redirect_to @user
     else
@@ -25,9 +26,35 @@ class UsersController < ApplicationController
     end
   end
   
+  def edit
+  end
+  
+  def update
+    @user.update(user_params)
+    
+    if @user.save
+      flash[:success] = 'ユーザを編集しました'
+      redirect_to @user
+    else
+      flash[:danger] = 'ユーザ編集に失敗しました'
+      render :edit
+    end
+  end
+  
+  def destroy
+    @user.destroy
+    
+    flash[:success] = '退会しました'
+    redirect_to root_url
+  end
+  
   private
   
   def user_params
     params.require(:user).permit(:name, :email, :password, :password_confirmation)
+  end
+  
+  def set_user
+    @user = User.find(params[:id])
   end
 end
